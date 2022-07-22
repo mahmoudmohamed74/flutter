@@ -54,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     prefix: Icons.email,
                     validate: (value) {
                       if (value!.isEmpty) {
-                        return "email must not be empty";
+                        return "$value must not be empty";
                       }
                       return null;
                     },
@@ -73,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       type: TextInputType.visiblePassword,
                       validate: (value) {
                         if (value!.isEmpty) {
-                          return "password must not be empty";
+                          return "$value must not be empty";
                         }
                         return null;
                       },

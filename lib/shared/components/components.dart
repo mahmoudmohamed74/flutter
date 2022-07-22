@@ -1,5 +1,6 @@
-// ignore_for_file: prefer_const_constructors, avoid_print
+// ignore_for_file: prefer_const_constructors, avoid_print, prefer_const_literals_to_create_immutables
 
+import 'package:first/shared/cubit/cubit.dart';
 import 'package:flutter/material.dart';
 
 Widget defaultButton({
@@ -34,12 +35,14 @@ Widget defaultButton({
 Widget defaultFormField({
   required TextEditingController controller,
   required TextInputType type,
-  required Function validate,
+  required String? Function(String? val)? validate,
   required String lable,
   required IconData prefix,
   Function(String value)? onFieldSubmitted,
   Function(String value)? onChanged,
+  Function? onTap,
   bool isPassword = false,
+  bool isClickable = true,
   IconData? suffix,
   Function? suffixPressed,
 }) =>
@@ -69,11 +72,64 @@ Widget defaultFormField({
             : null,
         border: OutlineInputBorder(),
       ),
-      validator: (value) {
-        if (value!.isEmpty) {
-          return "email must not be empty";
-        }
-        return null;
+      validator: validate,
+      onTap: () {
+        onTap!();
       },
+      enabled: isClickable,
       obscureText: isPassword,
+    );
+
+Widget builTaskItem(Map model, context) => Padding(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 40,
+            child: Text('${model['time']}'),
+          ),
+          SizedBox(
+            width: 20,
+          ),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${model['title']}',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  '${model['date']}',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 20,
+          ),
+          IconButton(
+            onPressed: () {
+              AppCubit.get(context).updateDatabase(
+                status: "done",
+                id: model['id'],
+              );
+            },
+            icon: Icon(Icons.check_box),
+            color: Colors.green,
+          ),
+          IconButton(
+            onPressed: () {
+              AppCubit.get(context).updateDatabase(
+                status: "archived",
+                id: model['id'],
+              );
+            },
+            icon: Icon(Icons.archive),
+            color: Colors.black45,
+          ),
+        ],
+      ),
     );
