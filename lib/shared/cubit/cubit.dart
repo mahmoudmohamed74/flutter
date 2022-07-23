@@ -22,7 +22,9 @@ class AppCubit extends Cubit<AppStates> {
 
   late Database database;
 
-  List<Map> tasks = [];
+  List<Map> newTasks = [];
+  List<Map> doneTasks = [];
+  List<Map> archivedTasks = [];
 
   void changeIndex(int index) {
     currentIndex = index;
@@ -42,13 +44,7 @@ class AppCubit extends Cubit<AppStates> {
         print("error when creating table ${error.toString()} ");
       });
     }, onOpen: (database) {
-      getDataFromDatabase(database).then(
-        (value) {
-          tasks = value;
-          print(tasks);
-          emit(AppGetDatabaseState());
-        },
-      );
+      getDataFromDatabase(database);
 
       print("database opened");
     }).then((value) {
@@ -71,22 +67,32 @@ class AppCubit extends Cubit<AppStates> {
         print(" $value inserted successfully");
         emit(AppInsertDatabaseState());
         // b3d m 3mal insert bystore el gded & print & emit
-        getDataFromDatabase(database).then(
-          (value) {
-            tasks = value;
-            print(tasks);
-            emit(AppGetDatabaseState());
-          },
-        );
+        getDataFromDatabase(database);
       }).catchError((error) {
         print("error when insearting new record ${error.toString()} ");
       });
     });
   }
 
-  Future<List<Map>> getDataFromDatabase(database) async {
+  void getDataFromDatabase(database) {
+    newTasks = [];
+    doneTasks = [];
+    archivedTasks = [];
     // emit(AppGetDatabaseLoadingState());
-    return await database.rawQuery('SELECT * FROM tasks');
+    database.rawQuery('SELECT * FROM tasks').then(
+      (value) {
+        value.forEach((element) {
+          if (element['status'] == 'new') {
+            newTasks.add(element);
+          } else if (element['status'] == 'done') {
+            doneTasks.add(element);
+          } else {
+            archivedTasks.add(element);
+          }
+        });
+        emit(AppGetDatabaseState());
+      },
+    );
   }
 
   void updateDatabase({
@@ -95,7 +101,19 @@ class AppCubit extends Cubit<AppStates> {
   }) async {
     database.rawUpdate('UPDATE tasks SET status = ? WHERE id = ?',
         ['$status', id]).then((value) {
+      getDataFromDatabase(database);
+
       emit(AppUpdateDatabaseState());
+    });
+  }
+
+  void deleteDatabase({
+    required int? id,
+  }) async {
+    database.rawDelete('DELETE FROM tasks WHERE id = ?', [id]).then((value) {
+      getDataFromDatabase(database);
+
+      emit(AppDeleteDatabaseState());
     });
   }
 
